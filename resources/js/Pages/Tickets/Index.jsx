@@ -197,7 +197,7 @@ export default function Index({ tickets, users }) {
                                         <td className="p-3">
                                             <select
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="w-full min-w-[120px] border rounded px-2 py-1 text-sm"
+                                                className="w-full border rounded px-2 py-1 text-sm"
                                                 defaultValue={ticket.status}
                                                 onChange={e =>
                                                     setTicketUpdates(prev => ({
@@ -220,7 +220,7 @@ export default function Index({ tickets, users }) {
                                             {isManager ? (
                                                 <select
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className="w-full min-w-[120px] border rounded px-2 py-1 text-sm"
+                                                    className="w-full border rounded px-2 py-1 text-sm"
                                                     defaultValue={ticket.priority}
                                                     onChange={e =>
                                                         setTicketUpdates(prev => ({
@@ -242,8 +242,33 @@ export default function Index({ tickets, users }) {
                                             )}
                                         </td>
 
+                                        {/* Assignee dropdown */}
                                         <td className="p-3">
-                                            {ticket.assigned_user?.name || '—'}
+                                            {isManager ? (
+                                                <select
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="w-full border rounded px-2 py-1 text-sm"
+                                                    defaultValue={ticket.assigned_to || ''}
+                                                    onChange={e =>
+                                                        setTicketUpdates(prev => ({
+                                                            ...prev,
+                                                            [ticket.id]: {
+                                                                ...prev[ticket.id],
+                                                                assigned_to: e.target.value || null
+                                                            }
+                                                        }))
+                                                    }
+                                                >
+                                                    <option value="">Unassigned</option>
+                                                    {users.map(user => (
+                                                        <option key={user.id} value={user.id}>
+                                                            {user.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <span>{ticket.assigned_user?.name || '—'}</span>
+                                            )}
                                         </td>
 
                                         <td className="p-3">

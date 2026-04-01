@@ -19,8 +19,8 @@ class TicketController extends Controller
         $user = auth()->user();
         $request = request();
 
-        // filters 
-        $filters = collect($request->only(['search', 'status', 'priority', 'assigned_to']))
+        //  include 'overdue' in filters
+        $filters = collect($request->only(['search', 'status', 'priority', 'assigned_to', 'overdue']))
             ->filter(fn ($value) => $value !== null && $value !== '')
             ->toArray();
 
@@ -39,17 +39,24 @@ class TicketController extends Controller
         }
 
         // filters
-        $query->when($request->filled('status'), fn ($q) =>
-            $q->where('status', $request->status)
-        );
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
 
-        $query->when($request->filled('priority'), fn ($q) =>
-            $q->where('priority', $request->priority)
-        );
+        if ($request->has('priority')) {
+            $query->where('priority', $request->priority);
+        }
 
-        $query->when($request->filled('assigned_to'), fn ($q) =>
-            $q->where('assigned_to', $request->assigned_to)
-        );
+        if ($request->has('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
+        }
+
+        // overdue filter logic
+        if ($request->has('overdue')) {
+            $query->whereNotNull('due_at') // avoid null issues
+                  ->where('due_at', '<', now())
+                  ->whereNotIn('status', ['completed']);
+        }
 
         // search 
         if ($request->filled('search') && trim($request->search) !== '') {
@@ -78,13 +85,10 @@ class TicketController extends Controller
         ]);
     }
 
-    //  Show method
     public function show(Ticket $ticket)
     {
-        // authorize user can view ticket
         $this->authorize('view', $ticket);
 
-        // load relationships needed for frontend
         $ticket->load([
             'creator',
             'assignedUser',
@@ -92,7 +96,6 @@ class TicketController extends Controller
             'activities.user'   
         ]);
 
-        // send data to Show.jsx page
         return Inertia::render('Tickets/Show', [
             'ticket' => $ticket
         ]);
@@ -161,8 +164,6 @@ class TicketController extends Controller
         }
 
         if ($request->exists('status')) {
-            $this->authorize('update', $ticket);
-
             if ($ticket->status !== $request->status) {
                 $changes['status'] = [
                     'old' => $ticket->status,
@@ -195,8 +196,6 @@ class TicketController extends Controller
         }
 
         if ($request->exists('title') || $request->exists('description')) {
-            $this->authorize('update', $ticket);
-
             $ticket->title = $request->title ?? $ticket->title;
             $ticket->description = $request->description ?? $ticket->description;
         }
