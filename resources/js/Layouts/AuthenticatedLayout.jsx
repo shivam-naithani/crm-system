@@ -39,6 +39,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Tickets
                                 </NavLink>
+                                {user.role === 'admin' && (
+                                <NavLink
+                                       href="/admin/roles"
+                                       active={route().current('roles.*')}
+                                >
+                                      Roles & Permissions
+                                 </NavLink>
+                              )}
                             </div>
                         </div>
 
@@ -150,6 +158,11 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Tickets
                         </ResponsiveNavLink>
+                            {user.role === 'admin' && (
+                        <ResponsiveNavLink href="/admin/roles">
+                            Roles & Permissions
+                        </ResponsiveNavLink>
+                    )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
