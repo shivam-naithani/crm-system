@@ -37,10 +37,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Admin only
-    Route::middleware(['role:admin'])->group(function () {
-        Route::get('/admin', function () {
-            return 'Admin Panel';
-        });
+Route::middleware(['auth', 'role:admin'])->group(function () {
+
+    Route::get('/admin', function () {
+        return 'Admin Panel';
+    });
+
+    // Roles management page
+    Route::get('/admin/roles', [\App\Http\Controllers\RoleController::class, 'index'])
+        ->name('roles.index');
+
+    // Update user role
+    Route::patch('/admin/users/{user}/role', [\App\Http\Controllers\RoleController::class, 'update'])
+        ->name('roles.update');
     });
 
     // Manager + Admin
