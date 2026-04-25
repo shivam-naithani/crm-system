@@ -20,42 +20,108 @@ export default function Show() {
         });
     };
 
+    // badge styles
+    const statusStyles = {
+        pending: "bg-yellow-500 text-white",
+        inprogress: "bg-blue-500 text-white",
+        completed: "bg-green-600 text-white",
+    };
+
+    const priorityStyles = {
+        low: "bg-gray-500 text-white",
+        medium: "bg-orange-500 text-white",
+        high: "bg-red-600 text-white",
+    };
+
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold">Ticket Details</h2>}
+            header={
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                        Ticket Details
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                        View and track ticket progress
+                    </p>
+                </div>
+            }
         >
             <Head title={`Ticket #${ticket.id}`} />
 
             <div className="p-6 space-y-6">
 
-                {/* TICKET DETAILS */}
-                <div className="bg-white p-5 rounded shadow">
-                    <h3 className="text-lg font-semibold mb-2">
-                        {ticket.title}
-                    </h3>
+                {/* HEADER CARD */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border space-y-5">
+                    
+                    {/* Title + badges */}
+                    <div className="flex items-start justify-between flex-wrap gap-3">
+                        <h3 className="text-2xl font-semibold text-gray-900">
+                            {ticket.title}
+                        </h3>
 
-                    <p className="text-gray-700 mb-4 whitespace-pre-line">
+                        <div className="flex gap-2">
+                            <span className={`px-3 py-1 text-xs rounded-full font-semibold ${statusStyles[ticket.status]}`}>
+                                {ticket.status}
+                            </span>
+
+                            <span className={`px-3 py-1 text-xs rounded-full font-semibold ${priorityStyles[ticket.priority]}`}>
+                                {ticket.priority}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">
                         {ticket.description}
                     </p>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                        <div><strong>Status:</strong> {ticket.status}</div>
-                        <div><strong>Priority:</strong> {ticket.priority}</div>
-                        <div><strong>Assigned:</strong> {ticket.assigned_user?.name || '—'}</div>
-                        <div><strong>Created By:</strong> {ticket.creator?.name}</div>
-                        <div><strong>Created At:</strong> {new Date(ticket.created_at).toLocaleString()}</div>
-                        <div><strong>Due:</strong> {ticket.due_at ? new Date(ticket.due_at).toLocaleString() : '—'}</div>
+                    {/* Divider */}
+                    <div className="border-t pt-4"></div>
+
+                    {/* Metadata */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-sm">
+                        <div>
+                            <p className="text-gray-500">Assigned</p>
+                            <p className="font-medium">
+                                {ticket.assigned_user?.name || '—'}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-gray-500">Created By</p>
+                            <p className="font-medium">
+                                {ticket.creator?.name}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-gray-500">Created At</p>
+                            <p className="font-medium">
+                                {new Date(ticket.created_at).toLocaleString()}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-gray-500">Due Date</p>
+                            <p className="font-medium">
+                                {ticket.due_at
+                                    ? new Date(ticket.due_at).toLocaleString()
+                                    : '—'}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
                 {/* COMMENTS */}
-                <div className="bg-white p-5 rounded shadow space-y-4">
-                    <h3 className="font-semibold text-lg">Comments</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm border space-y-5">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                        Comments
+                    </h3>
 
-                    {/* ADD COMMENT */}
-                    <form onSubmit={submitComment} className="space-y-2">
+                    {/* Add comment */}
+                    <form onSubmit={submitComment} className="space-y-3">
                         <textarea
-                            className="w-full border rounded p-2 text-sm"
+                            className="w-full border rounded-md p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             placeholder="Write a comment..."
                             value={commentForm.data.message}
                             onChange={e => commentForm.setData('message', e.target.value)}
@@ -68,65 +134,87 @@ export default function Show() {
                         )}
 
                         <button
-                            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition"
                             disabled={commentForm.processing}
                         >
                             {commentForm.processing ? 'Posting...' : 'Post Comment'}
                         </button>
                     </form>
 
-                    {/* COMMENTS LIST */}
-                    <div className="space-y-3">
+                    {/* Comment list */}
+                    <div className="space-y-4">
                         {(ticket.comments || []).length === 0 && (
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-400">
                                 No comments yet.
                             </p>
                         )}
 
                         {(ticket.comments || []).map(comment => (
-                            <div key={comment.id} className="border rounded p-3 bg-gray-50">
-                                <div className="text-xs text-gray-500 mb-1">
-                                    <strong>{comment.user?.name}</strong> • {new Date(comment.created_at).toLocaleString()}
+                            <div key={comment.id} className="flex gap-3 items-start">
+                                
+                                {/* Avatar */}
+                                <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-sm font-semibold">
+                                    {comment.user?.name?.charAt(0).toUpperCase()}
                                 </div>
 
-                                <div className="text-sm whitespace-pre-line">
-                                    {comment.message}
+                                {/* Bubble */}
+                                <div className="flex-1 bg-gray-100 rounded-lg p-3 shadow-sm">
+                                    <div className="text-xs text-gray-500 mb-1">
+                                        <strong>{comment.user?.name}</strong> • {new Date(comment.created_at).toLocaleString()}
+                                    </div>
+
+                                    <div className="text-sm text-gray-700 whitespace-pre-line">
+                                        {comment.message}
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* ACTIVITY */}
-                <div className="bg-white p-5 rounded shadow space-y-4">
-                    <h3 className="font-semibold text-lg">Activity Timeline</h3>
+                {/* ACTIVITY TIMELINE */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border space-y-5">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                        Activity Timeline
+                    </h3>
 
                     {(ticket.activities || []).length === 0 && (
-                        <p className="text-sm text-gray-500">No activity yet.</p>
+                        <p className="text-sm text-gray-400">
+                            No activity yet.
+                        </p>
                     )}
 
-                    <div className="space-y-3">
+                    <div className="space-y-6">
                         {(ticket.activities || []).map(activity => (
-                            <div key={activity.id} className="border-l-4 border-blue-500 pl-3 py-2">
-                                <div className="text-sm">
-                                    <strong>{activity.user?.name || 'System'}</strong>{' '}
-                                    {activity.action}
+                            <div key={activity.id} className="flex gap-4">
+
+                                {/* Timeline */}
+                                <div className="flex flex-col items-center">
+                                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                    <div className="flex-1 w-[2px] bg-gray-300"></div>
                                 </div>
 
-                                <div className="text-xs text-gray-500 mb-1">
-                                    {new Date(activity.created_at).toLocaleString()}
-                                </div>
-
-                                {activity.meta && (
-                                    <div className="text-xs bg-gray-50 p-2 rounded mt-1">
-                                        {Object.keys(activity.meta).map(key => (
-                                            <div key={key}>
-                                                <span className="font-medium">{key}:</span>{' '}
-                                                {activity.meta[key].old ?? '—'} → {activity.meta[key].new ?? '—'}
-                                            </div>
-                                        ))}
+                                {/* Content */}
+                                <div className="flex-1 pb-2">
+                                    <div className="text-sm text-gray-800">
+                                        <strong>{activity.user?.name || 'System'}</strong> {activity.action}
                                     </div>
-                                )}
+
+                                    <div className="text-xs text-gray-500 mb-2">
+                                        {new Date(activity.created_at).toLocaleString()}
+                                    </div>
+
+                                    {activity.meta && (
+                                        <div className="text-xs bg-gray-100 p-2 rounded">
+                                            {Object.keys(activity.meta).map(key => (
+                                                <div key={key}>
+                                                    <span className="font-medium">{key}:</span>{' '}
+                                                    {activity.meta[key].old ?? '—'} → {activity.meta[key].new ?? '—'}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
