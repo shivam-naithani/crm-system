@@ -27,10 +27,14 @@ class DashboardController extends Controller
         return $this->userDashboard($user);
     }
 
-     /* Admin / Manager / Viewer Dashboard */
-     
+    /* Admin / Manager / Viewer Dashboard */
     private function adminDashboard($user)
     {
+        $recentTickets = Ticket::with('assignedUser')
+            ->latest()
+            ->take(3)
+            ->get();
+
         return Inertia::render('Dashboard', [
             'role' => $user->role,
             'stats' => [
@@ -48,15 +52,21 @@ class DashboardController extends Controller
                     ->whereNotNull('due_at')
                     ->where('due_at', '<', now())
                     ->count(),
-            ]
+            ],
+            'recentTickets' => $recentTickets,
         ]);
     }
 
-     /* Agent Dashboard (assigned tickets only) */
-     
+    /* Agent Dashboard (assigned tickets only) */
     private function agentDashboard($user)
     {
         $query = Ticket::where('assigned_to', $user->id);
+
+        $recentTickets = (clone $query)
+            ->with('assignedUser')
+            ->latest()
+            ->take(3)
+            ->get();
 
         return Inertia::render('Dashboard', [
             'role' => $user->role,
@@ -80,15 +90,21 @@ class DashboardController extends Controller
                     ->whereNotNull('due_at')
                     ->where('due_at', '<', now())
                     ->count(),
-            ]
+            ],
+            'recentTickets' => $recentTickets,
         ]);
     }
 
-     /* User (Customer) Dashboard */
-     
+    /* User (Customer) Dashboard */
     private function userDashboard($user)
     {
         $query = Ticket::where('created_by', $user->id);
+
+        $recentTickets = (clone $query)
+            ->with('assignedUser')
+            ->latest()
+            ->take(3)
+            ->get();
 
         return Inertia::render('Dashboard', [
             'role' => $user->role,
@@ -110,7 +126,8 @@ class DashboardController extends Controller
                     ->whereNotNull('due_at')
                     ->where('due_at', '<', now())
                     ->count(),
-            ]
+            ],
+            'recentTickets' => $recentTickets,
         ]);
     }
 }
