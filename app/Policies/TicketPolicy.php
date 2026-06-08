@@ -25,7 +25,7 @@ class TicketPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return !$user->isViewer();
     }
 
     public function update(User $user, Ticket $ticket): bool
